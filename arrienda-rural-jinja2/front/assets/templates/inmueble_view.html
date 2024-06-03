@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block contenido %}
+  <div class="container mt-5">
+    <div class="card">
+      <div class="card-header">
+        <h2>{{ inmueble.nombre }}</h2>
+      </div>
+      <div class="card-body">
+        {% comment %} {% if user.is_authenticated %}
+          <p>Bienvenido, {{ user.username }}</p>
+          {% if is_owner %}
+            <p>Eres el propietario</p>
+          {% elif user_role == 'arrendatario' %}
+            <p>Eres un arrendatario</p>
+          {% endif %}
+        {% else %}
+          <p>Bienvenido, visitante</p>
+        {% endif %} {% endcomment %}
+
+        <!-- Galería de imágenes -->
+        <div class="gallery">
+          {% if inmueble.imagenes.all %}
+            {% for imagen in inmueble.imagenes.all %}
+              <a href="{{ imagen.imagen.url }}" data-lightbox="inmueble-gallery" data-title="{{ inmueble.nombre }}"><img src="{{ imagen.imagen.url }}" class="thumbnail" alt="Imagen de {{ inmueble.nombre }}" /></a>
+            {% endfor %}
+          {% else %}
+            <p>No hay imágenes disponibles para este inmueble.</p>
+          {% endif %}
+        </div>
+
+        <p class="card-text">
+          <strong>Comuna:</strong> {{ inmueble.direccion_id.comuna.nombre }}, {{ inmueble.direccion_id.comuna.region.nombre }}
+        </p>
+        <p class="card-text">
+          <strong>Descripción:</strong> {{ inmueble.description }}
+        </p>
+        <p class="card-text">
+          <strong>Metros Construidos:</strong> {{ inmueble.m2_construidos }} m²
+        </p>
+        <p class="card-text">
+          <strong>Metros Totales:</strong> {{ inmueble.m2_totales }} m²
+        </p>
+        <p class="card-text">
+          <strong>Estacionamientos:</strong> {{ inmueble.estacionamientos }}
+        </p>
+        <p class="card-text">
+          <strong>Habitaciones:</strong> {{ inmueble.cantidad_habitaciones }}
+        </p>
+        <p class="card-text">
+          <strong>Baños:</strong> {{ inmueble.cantidad_banos }}
+        </p>
+        <p class="card-text">
+          <strong>Tipo de Inmueble:</strong> {{ inmueble.get_tipo_de_inmueble_display }}
+        </p>
+        <p class="card-text">
+          <strong>Precio de Arriendo:</strong> ${{ inmueble.precio_arriendo }}
+        </p>
+        <p class="card-text">
+          <strong>Estado:</strong> {{ inmueble.get_estado_display }}
+        </p>
+      </div>
+      <div class="card-footer text-muted">
+        <a href="{% url 'arrendar_list' %}" class="btn btn-secondary">Volver a la lista de inmuebles</a>
+        {% if user.is_authenticated %}
+          {% if is_owner %}
+            <a href="{% url 'editar_inmueble' inmueble.pk %}" class="btn btn-primary">Editar</a>
+            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#eliminarInmuebleModal{{ inmueble.id }}">Eliminar</button>
+          {% elif is_renting %}
+            <a href="{% url 'liberar_inmueble' inmueble_id=inmueble.id %}" class="btn btn-warning btn-sm">Pedir fin del contrato</a>
+          {% endif %}
+        {% else %}
+          <a href="{% url 'login' %}" class="btn btn-success">Inicia sesión para arrendar</a>
+        {% endif %}
+
+        {% if esta_arrendado %}
+          <button class="btn btn-secondary btn-sm" disabled>No disponible</button>
+        {% else %}
+          <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#confirmarArriendoModal">Arrendar</button>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Modales -->
+  <div class="modal fade" id="eliminarInmuebleModal{{ inmueble.id }}" tabindex="-1" aria-labelledby="eliminarInmuebleModalLabel{{ inmueble.id }}" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="eliminarInmuebleModalLabel{{ inmueble.id }}">Confirmar Eliminación</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">¿Estás seguro de que quieres eliminar este inmueble ({{ inmueble.nombre }})? Esta acción no se puede deshacer.</div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <a href="{% url 'eliminar_inmueble' inmueble.id %}" class="btn btn-danger">Eliminar</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal fade" id="confirmarArriendoModal" tabindex="-1" aria-labelledby="confirmarArriendoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="confirmarArriendoModalLabel">Confirmar Arriendo</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">¿Estás seguro de que quieres arrendar este inmueble ({{ inmueble.nombre }})?</div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <a href="{% url 'confirmar_arriendo' inmueble.id %}" class="btn btn-primary">Confirmar</a>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

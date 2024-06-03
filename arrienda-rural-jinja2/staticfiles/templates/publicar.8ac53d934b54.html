@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block contenido %}
+  <div class="contenedor publicar-container">
+    <h1>Publica tu propiedad en 5 minutos!</h1>
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      {{ direccion_form.as_p }}
+      {{ inmueble_form.as_p }}
+      <button type="submit" class="btn btn-primary">Guardar</button>
+    </form>
+  </div>
+  <script type="text/javascript">
+    $(document).ready(function () {
+      $('#id_region').change(function () {
+        var url = "{% url 'cargar_comunas' %}" // URL para cargar las comunas
+        var regionId = $(this).val()
+    
+        $.ajax({
+          url: url,
+          data: {
+            region_id: regionId
+          },
+          success: function (data) {
+            $('#id_comuna').html('')
+            $.each(data, function (key, value) {
+              $('#id_comuna').append('<option value="' + value.id + '">' + value.nombre + '</option>')
+            })
+          }
+        })
+      })
+    })
+  </script>
+{% endblock %}
